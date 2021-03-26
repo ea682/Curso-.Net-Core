@@ -16,7 +16,7 @@ namespace NorthwindApiDemo
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddControllers(options => options.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -27,16 +27,23 @@ namespace NorthwindApiDemo
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-
             app.UseStatusCodePages();
+
+            app.UseMvc();
+            /*app.UseMvc(config => 
+            {
+                config.MapRoute(
+                    name: "Default",
+                    template: "{controller}/{action}/{id?}",
+                    defaults: new 
+                    {
+                        controller = "Home",
+                        action = "Index"
+                    });
+            });*/
             /*app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/", async context =>
-                {
-                    throw new Exception("Testin Exceptions");
-                });
-                /*endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Hello World!");
                 });
