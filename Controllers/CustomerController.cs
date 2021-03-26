@@ -10,13 +10,23 @@ namespace NorthwindApiDemo.Controllers
     public class CustomerController : Controller
     {
         [HttpGet]
-        public JsonResult GetCustomers()
+        public IActionResult GetCustomers()
         {
-            return new JsonResult(new List<Object>()
+            return new JsonResult(Repository.Instance.Customers);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetCustomer(int id)
+        {
+            var result =
+                Repository.Instance.Customers
+                .FirstOrDefault(c => c.Id == id);
+            if (result == null)
             {
-                new { CustomerId = 1, ContactName = "Anderson"},
-                new { CustomerId = 2, ContactName = "Solaris"},
-            }); ;
+                return NotFound();
+            }
+            return Ok(result);
+            //return new JsonResult(result);
         }
     }
 }
