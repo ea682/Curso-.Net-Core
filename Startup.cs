@@ -27,7 +27,7 @@ namespace NorthwindApiDemo
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseStatusCodePages();
+            //app.UseStatusCodePages();
 
             app.UseMvc();
             /*app.UseMvc(config => 

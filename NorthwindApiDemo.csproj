@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Foundation.ObjectHydrator.Core" Version="1.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.4" />
   </ItemGroup>
 
 </Project>
