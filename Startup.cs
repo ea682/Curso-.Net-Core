@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NorthwindApiDemo.EFModelsclear;
+using NorthwindApiDemo.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace NorthwindApiDemo
             {
                 options.UseSqlServer("Server=ERIK-M;Database=Northwind;User Id=ea682;Password=5450940");
             });
+
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
