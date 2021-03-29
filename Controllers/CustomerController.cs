@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NorthwindApiDemo.Models;
+using NorthwindApiDemo.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +11,38 @@ namespace NorthwindApiDemo.Controllers
     [Route("api/customers")]
     public class CustomerController : Controller
     {
+        private ICustomerRepository _customerRepository;
+        public CustomerController(ICustomerRepository customerRepository)
+        {
+            _customerRepository = customerRepository;
+        }
+        
         [HttpGet]
         public IActionResult GetCustomers()
         {
-            return new JsonResult(Repository.Instance.Customers);
+            var customers =
+                _customerRepository
+                .GetCustomers();
+
+            var results = new List<CustomerWithoutOrders>();
+            foreach (var customer in customers)
+            {
+                results.Add(new CustomerWithoutOrders()
+                {
+                    CustomerId = customer.CustomerId,
+                    CompanyName = customer.CompanyName,
+                    ContactName = customer.ContactName,
+                    ContactTitle = customer.ContactTitle,
+                    Address = customer.Address,
+                    City = customer.City,
+                    Region = customer.Region,
+                    PostalCode = customer.PostalCode,
+                    Conuntry = customer.Country,
+                    Phone = customer.Phone,
+                    Fax = customer.Fax
+                });
+            }
+            return new JsonResult(results);
         }
 
         [HttpGet("{id}")]

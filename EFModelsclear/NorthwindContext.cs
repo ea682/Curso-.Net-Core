@@ -15,6 +15,7 @@ namespace NorthwindApiDemo.EFModelsclear
         public NorthwindContext(DbContextOptions<NorthwindContext> options)
             : base(options)
         {
+
         }
 
         public virtual DbSet<AlphabeticalListOfProduct> AlphabeticalListOfProducts { get; set; }
