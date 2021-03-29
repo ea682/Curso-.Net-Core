@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NorthwindApiDemo.EFModelsclear;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +19,10 @@ namespace NorthwindApiDemo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers(options => options.EnableEndpointRouting = false);
+            services.AddDbContext<NorthwindContext>(options =>
+            {
+                options.UseSqlServer("Server=ERIK-M;Database=Northwind;User Id=ea682;Password=5450940");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -30,24 +36,6 @@ namespace NorthwindApiDemo
             //app.UseStatusCodePages();
 
             app.UseMvc();
-            /*app.UseMvc(config => 
-            {
-                config.MapRoute(
-                    name: "Default",
-                    template: "{controller}/{action}/{id?}",
-                    defaults: new 
-                    {
-                        controller = "Home",
-                        action = "Index"
-                    });
-            });*/
-            /*app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
-            });*/
         }
     }
 }

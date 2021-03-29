@@ -199,5 +199,31 @@ namespace NorthwindApiDemo.Controllers
 
             return NoContent();
         }
+
+        [HttpDelete("{customerId}/orders/{id}")]
+        public IActionResult DeleteOrder(int customerId, int id)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var customer = Repository.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            var orderFromRepository =
+                customer.Orders.FirstOrDefault(o => o.OrderId == id);
+            if (orderFromRepository == null)
+            {
+                return NotFound();
+            }
+            customer.Orders.Remove(orderFromRepository);
+
+            return NoContent();
+        }
     }
 }
