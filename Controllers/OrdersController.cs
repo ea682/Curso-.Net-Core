@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using NorthwindApiDemo.EFModelsclear;
 using NorthwindApiDemo.Models;
+using NorthwindApiDemo.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,36 +14,74 @@ namespace NorthwindApiDemo.Controllers
     [Route("api/customers")]
     public class OrdersController : Controller
     {
-        [HttpGet("{customerId}/orders")]
-        public IActionResult GetOrders(int customerId)
+        private ICustomerRepository _customerRepository;
+        public OrdersController(ICustomerRepository customerRepository)
         {
-            var customer = Repository.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
-            if (customer == null)
+            _customerRepository = customerRepository;
+        }
+
+
+        private IMapper MapperOrders()
+        {
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Order, OrdersDTO>();
+            });
+            IMapper mapper = config.CreateMapper();
+
+            return mapper;
+        }
+
+        private IMapper MapperOrder()
+        {
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Order, Order>();
+            });
+            IMapper mapper = config.CreateMapper();
+
+            return mapper;
+        }
+
+
+        [HttpGet("{customerId}/orders")]
+        public IActionResult GetOrders(string customerId)
+        {
+            if (!_customerRepository.CustumerExists(customerId))
             {
                 return NotFound();
             }
+            var orders =
+                _customerRepository.GetOrdes(customerId);
 
-            return Ok(customer.Orders);
+            var mapperOrdersDTO = MapperOrders();
+            var orderResult = mapperOrdersDTO.Map<IEnumerable<OrdersDTO>>(orders);
+
+            return Ok(orderResult);
         }
 
         [HttpGet("{customerId}/orders/{id}", Name = "GetOrder")]
-        public IActionResult GetOrder(int customerId, int id)
+        public IActionResult GetOrder(string customerId, int id)
         {
-            var customer = Repository.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
-            if (customer == null)
+
+            if (!_customerRepository.CustumerExists(customerId))
             {
                 return NotFound();
             }
 
-            var order = customer.Orders.FirstOrDefault(c => c.OrderId == id);
+            var order =
+                _customerRepository.GetOrder(customerId, id);
+
             if (order == null)
             {
                 return NotFound();
             }
-            return Ok(order);
+
+            var mapperOrdersDTO = MapperOrders();
+            var orderResult = mapperOrdersDTO.Map<Order>(order);
+
+            return Ok(orderResult);
         }
         [HttpPost("{customerId}/orders")]
-        public IActionResult CreateOrder(int customerId, [FromBody] OrdersForCreationDTO order)
+        public IActionResult CreateOrder(string customerId, [FromBody] OrdersForCreationDTO order)
         {
             if (order == null)
             {
@@ -52,41 +93,31 @@ namespace NorthwindApiDemo.Controllers
                 return BadRequest();
             }
 
-            var customer = Repository.Instance.Customers.FirstOrDefault(c => c.Id == customerId);
-            if (customer == null)
+
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Order, OrderWitchout>();
+            });
+            IMapper mapper = config.CreateMapper();
+            var orderResult = mapper.Map<Order>(order);
+
+            _customerRepository.AddOrder(customerId, orderResult);
+
+            if (!_customerRepository.Save())
             {
-                return NotFound();
+                return StatusCode(500, "Place verify your data");
             }
 
-            var maxOrderId =
-                Repository.Instance.Customers
-                .SelectMany(c => c.Orders)
-                .Max(o => o.OrderId);
+            var mapperOrders = MapperOrders();
+            var resultMapperOrdersDTO = mapperOrders.Map<OrdersDTO>(orderResult);
 
-            var finalOrder = new OrdersDTO()
-            {
-                OrderId = maxOrderId++,
-                CustomerId = order.CustomerId,
-                EmployeeId = order.EmployeeId,
-                OrderDate = order.OrderDate,
-                RequiredDate = order.RequiredDate,
-                ShiippedDate = order.ShiippedDate,
-                ShipVia = order.ShipVia,
-                Freigth = order.Freigth,
-                ShipName = order.ShipName,
-                ShipAddress = order.ShipAddress,
-                ShipCity = order.ShipCity,
-                ShipRegion = order.ShipRegion,
-                ShipPostalCode = order.ShipPostalCode,
-                ShipCountry = order.ShipCountry
-            };
-
-            customer.Orders.Add(finalOrder);
 
             return CreatedAtRoute("GetOrder",
-                new { customerId = customer.Id,
-                    id = finalOrder.OrderId },
-                finalOrder
+                new 
+                { 
+                    customerId = customerId,
+                    id = resultMapperOrdersDTO.OrderId 
+                },
+                orderResult
                 );
         }
 

@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NorthwindApiDemo.EFModelsclear;
+using NorthwindApiDemo.Models;
 using NorthwindApiDemo.Services;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,11 @@ namespace NorthwindApiDemo
             });
 
             services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+            //Con esto se arregla el problema de los orders
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -35,9 +42,6 @@ namespace NorthwindApiDemo
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            //app.UseStatusCodePages();
-
             app.UseMvc();
         }
     }

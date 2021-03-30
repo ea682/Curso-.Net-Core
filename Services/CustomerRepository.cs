@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NorthwindApiDemo.EFModelsclear;
+using NorthwindApiDemo.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,17 @@ namespace NorthwindApiDemo.Services
             _context = context;
         }
 
+        public void AddOrder(string customerId, Order order)
+        {
+            var customer =
+                GetCustomers(customerId, false);
+            customer.Orders.Add(order);
+        }
+        public bool CustumerExists(string customerId)
+        {
+            return
+                _context.Customers.Any(c => c.CustomerId == customerId);
+        }
 
         public IEnumerable<Customer> GetCustomers()
         {
@@ -51,6 +63,11 @@ namespace NorthwindApiDemo.Services
             return _context.Orders
                 .Where(c => c.CustomerId == customerId)
                 .ToList();
+        }
+
+        public bool Save()
+        {
+            return(_context.SaveChanges() >= 0);
         }
     }
 }

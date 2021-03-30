@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using NorthwindApiDemo.EFModelsclear;
 using NorthwindApiDemo.Models;
 using NorthwindApiDemo.Services;
 using System;
@@ -17,6 +19,25 @@ namespace NorthwindApiDemo.Controllers
             _customerRepository = customerRepository;
         }
         
+        private IMapper MapperCustomer()
+        {
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Customer, CustomerWithoutOrders>();
+            });
+            IMapper mapper = config.CreateMapper();
+            
+            return mapper;
+        }
+        private IMapper MapperCustomerDTO()
+        {
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Customer, CustomerDTO>();
+            });
+            IMapper mapper = config.CreateMapper();
+
+            return mapper;
+        }
+
         [HttpGet]
         public IActionResult GetCustomers()
         {
@@ -24,38 +45,34 @@ namespace NorthwindApiDemo.Controllers
                 _customerRepository
                 .GetCustomers();
 
-            var results = new List<CustomerWithoutOrders>();
-            foreach (var customer in customers)
-            {
-                results.Add(new CustomerWithoutOrders()
-                {
-                    CustomerId = customer.CustomerId,
-                    CompanyName = customer.CompanyName,
-                    ContactName = customer.ContactName,
-                    ContactTitle = customer.ContactTitle,
-                    Address = customer.Address,
-                    City = customer.City,
-                    Region = customer.Region,
-                    PostalCode = customer.PostalCode,
-                    Conuntry = customer.Country,
-                    Phone = customer.Phone,
-                    Fax = customer.Fax
-                });
-            }
+            var mapper = MapperCustomer();
+            var results = mapper.Map<IEnumerable<CustomerWithoutOrders>>(customers);
             return new JsonResult(results);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetCustomer(int id)
+        public IActionResult GetCustomer(string id, bool includeOrdes)
         {
-            var result =
-                Repository.Instance.Customers
-                .FirstOrDefault(c => c.Id == id);
-            if (result == null)
+            //Inicializamos mapeo
+            
+
+            var customer = _customerRepository.GetCustomers(id, includeOrdes);
+
+            if (customer == null)
             {
                 return NotFound();
+
             }
-            return Ok(result);
+
+            if (includeOrdes)
+            {
+                var mapperDTO = MapperCustomerDTO();
+                var customerResultOnlyDTO = mapperDTO.Map<Customer>(customer);
+                return Ok(customerResultOnlyDTO);
+            }
+            var mapper = MapperCustomer();
+            var customerResultOnly = mapper.Map<CustomerWithoutOrders>(customer);
+            return Ok(customerResultOnly);
             //return new JsonResult(result);
         }
     }
